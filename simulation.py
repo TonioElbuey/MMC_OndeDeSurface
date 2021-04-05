@@ -34,6 +34,14 @@ def u2_a(x1, x3, t):
 def u2_b(x1, x3, t):
     return A*np.exp(b*x3)*np.cos(k*(x1 - c*t))
 
+def tan_dis(k, c):
+    global H, c_Ta
+    return np.tan(k*H*np.sqrt((c/c_Ta)**2 - 1))
+
+def sqrt_dis(c):
+    global mu_a, mu_b, c_Ta, c_Tb
+    return (mu_b/mu_a)*np.sqrt((1 - (c/c_Tb)**2)/((c/c_Ta)**2 - 1))
+
 # Simulation avec X3 variable
 
 t = 0
@@ -93,6 +101,39 @@ def update(i):
     text.set_text(f"Profondeur X3 = {x3_km} km")
 
 anim = FuncAnimation(fig, update, np.linspace(-H/5, H, Nbis), init_func= init, interval = 500)
-writer = PillowWriter(fps = 4)
-anim.save("Love_X1X3var.gif", writer)
+# writer = PillowWriter(fps = 4)
+# anim.save("Love_X1X3var.gif", writer)
+plt.show()
+
+# Simulation relation de dispersion
+
+N = 1000
+n_min = 50
+n_max = 55 
+sqrt_val = sqrt_dis(c)
+B = sqrt_val
+A = H*np.sqrt((c/c_Ta)**2 - 1)
+
+plt.figure("Relation de dispersion")
+plt.title("Relation de dispersion")
+plt.axhline(0, linestyle = '--', color = "k")
+
+for i in range(n_min+1, n_max):
+
+    Lambda_i = 4*A/( 2*i + 1 )
+    Lambda_i_prec = 4*A/( 2*i -1 )
+    eps = 0.001*Lambda_i
+    L_lambda = np.linspace( Lambda_i + eps, Lambda_i_prec - eps, N)
+    L_k = 2*np.pi/L_lambda
+    Lambda_0 = 2*A/i
+    Lambda_delta = -2*B*A/(np.pi*i**2)
+    Lambda_sol = Lambda_0 + Lambda_delta
+    L_tan = tan_dis(L_k, c)
+    L_rel = L_tan - B
+
+    plt.plot(L_lambda, L_rel)
+    plt.axvline(Lambda_0, linestyle = '--', color = "b")
+    plt.axvline(Lambda_i, linestyle = '--', color = "r")
+    plt.scatter(Lambda_sol, 0)
+
 plt.show()
